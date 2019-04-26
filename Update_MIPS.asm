@@ -254,6 +254,7 @@ CheckInput: 	#char* Input()
 	la	$a0, prompt1
 	
 	syscall
+	
 	la	$v0, 8
 	la	$a0, p_day #  scanf p_day
 	addi	$a1, $0, 3	
@@ -1250,18 +1251,38 @@ getNextLeapYear:
      sw $a0,0($sp)
      sw $ra,4($sp)
      jal Year
+     add $t1, $v0, $0
+     add $t4,$v0,$zero
+     
+     lw $a0,0($sp)
+     lw $ra,4($sp)
+     jal Day
+     add $t5, $v0, $0
+     
+     lw $a0,0($sp)
+     lw $ra,4($sp)
+     jal Month
      lw $ra,4($sp)
      lw $a0,0($sp)
      addiu $sp,$sp,8
-     add $t1, $v0, $0
-     add $t4,$v0,$zero
+     add $t6, $v0, $0
+    
+     
     whileLoop:
          addi 	$t1,$t1,1   
-         add 	$a0, $t1, $0
+         add 	$a2, $t1, $0
          addiu 	$sp,$sp,-8
          sw 	$t1,0($sp)
          sw 	$ra,4($sp)
-         jal 	leapyear1           # still use leapyear1(int)
+        
+         add    $a0,$t5,$zero
+         add    $a1,$t6,$zero
+         la     $a3,p_time_1
+         jal    _Date
+         add    $a3,$v0,$zero
+         add    $a0,$a3,0
+         jal     isLeapYear
+       
          add 	$t2,$v0,$zero
          beq 	$t2,1,endWhile
          lw 	$t1,0($sp)
@@ -1286,3 +1307,160 @@ getNextLeapYear:
        add $v0, $t2, $0
        add $v1, $t1, $0
        jr $ra
+       
+ _Date: # char* Date(int day, int month, int year, char* TIME)
+	# a0 = day , a1 = month , a2 = year , a3 =dd/mm/yyyy
+	addi	$sp, $sp, -32
+	sw	$t2,28($sp)
+	sw	$t1,24($sp)
+	sw	$t0,20($sp)
+	sw	$ra, 16($sp)
+	sw	$a0, 12($sp)
+	sw	$a1, 8($sp)
+	sw	$a2, 4($sp)
+	sw	$a3, 0($sp)
+
+	addi $t0,$0,10
+	div $a0,$t0
+	mflo $t1
+	mfhi $t2
+	
+	add $a0,$t1,$0
+	jal char
+	sb $v0,0($a3)
+	
+	add $a0,$t2,$0
+	jal char
+	sb $v0,1($a3)
+
+	addi	$t0, $0, 47
+	sb	$t0, 2($a3)
+	
+	addi $t0,$0,10
+	div $a1,$t0
+	mflo $t1
+	mfhi $t2
+	
+	add $a0,$t1,$0
+	jal char
+	sb $v0,3($a3)
+	
+	add $a0,$t2,$0
+	jal char
+	sb $v0,4($a3)
+
+	addi	$t0, $0, 47
+	sb	$t0, 5($a3)
+
+	#
+	addi $t0,$0,1000
+	div $a2,$t0
+	mflo $t1
+	mfhi $a2
+	
+	add $a0,$t1,$0
+	jal char
+	sb $v0,6($a3)
+	
+	addi $t0,$0,100
+	div $a2,$t0
+	mflo $t1
+	mfhi $a2
+	
+	add $a0,$t1,$0
+	jal char
+	sb $v0,7($a3)
+	
+	addi $t0,$0,10
+	div $a2,$t0
+	mflo $t1
+	mfhi $t2
+	
+	add $a0,$t1,$0
+	jal char
+	sb $v0,8($a3)
+	
+	add $a0,$t2,$0
+	jal char
+	sb $v0,9($a3)
+
+	add	$v0, $a3, $0
+	
+	lw	$t2,28($sp)
+	lw	$t1,24($sp)
+	lw	$t0,20($sp)
+	lw	$ra, 16($sp)
+	lw	$a0, 12($sp)
+	lw	$a1, 8($sp)
+	lw	$a2, 4($sp)
+	lw	$a3, 0($sp)
+	addi	$sp, $sp, 32
+	
+	jr	$ra
+#------------------------------------------------------------
+char: # char so(int num)
+	addi 	$sp, $sp, -12
+	sw	$ra, 8($sp)
+	sw	$t0, 4($sp)
+	sw	$t1, 0($sp)
+
+	addi $t0,$0,0
+	beq $a0,$t0,num0
+	addi $t0,$0,1
+	beq $a0,$t0,num1
+	addi $t0,$0,2
+	beq $a0,$t0,num2
+	addi $t0,$0,3
+	beq $a0,$t0,num3
+	addi $t0,$0,4
+	beq $a0,$t0,num4
+	addi $t0,$0,5
+	beq $a0,$t0,num5
+	addi $t0,$0,6
+	beq $a0,$t0,num6
+	addi $t0,$0,7
+	beq $a0,$t0,num7
+	addi $t0,$0,8
+	beq $a0,$t0,num8
+	addi $t0,$0,9
+	beq $a0,$t0,num9
+num0:
+	addi $v0,$0,48
+	j endchar
+num1:
+	addi $v0,$0,49
+	j endchar
+num2:
+	addi $v0,$0,50
+	j endchar
+num3:
+	addi $v0,$0,51
+	j endchar
+num4:
+	addi $v0,$0,52
+	j endchar
+num5:
+	addi $v0,$0,53
+	j endchar
+num6:
+	addi $v0,$0,54
+	j endchar
+num7:
+	addi $v0,$0,55
+	j endchar
+num8:
+	addi $v0,$0,56
+	j endchar
+num9:
+	addi $v0,$0,57
+	j endchar
+
+endchar:
+	lw	$ra, 8($sp)
+	lw	$t0, 4($sp)
+	lw	$t1, 0($sp)
+	addi 	$sp, $sp, 12
+	
+	jr	$ra
+
+
